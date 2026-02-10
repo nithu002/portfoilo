@@ -47,7 +47,7 @@ const ProactiveTooltip: React.FC<ProactiveTooltipProps> = ({ message, isVisible,
               ease: "easeInOut"
             }
           }}
-          className="fixed bottom-[110px] right-8 z-50 flex max-w-[300px] flex-col gap-2"
+          className="fixed bottom-[110px] right-8 z-[110] flex max-w-[300px] flex-col gap-2"
         >
           <div className="relative rounded-2xl border border-white/10 bg-black/90 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl overflow-hidden group">
             {/* Animated Background Shimmer */}

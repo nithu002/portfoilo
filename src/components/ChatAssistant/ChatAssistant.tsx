@@ -34,6 +34,7 @@ const ChatAssistant: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<FlowStep>('chat');
   const [firedTriggers, setFiredTriggers] = useState<Set<string>>(new Set());
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+  const [isMaximized, setIsMaximized] = useState(false);
   
   // Scheduling State
   const [selectedMeetingType, setSelectedMeetingType] = useState<MeetingType | null>(null);
@@ -245,86 +246,112 @@ const ChatAssistant: React.FC = () => {
         }} 
         unreadCount={unreadCount}
       />
-      <ChatWindow isOpen={isOpen}>
+      <ChatWindow isOpen={isOpen} isMaximized={isMaximized}>
         <ChatHeader 
           onClose={() => setIsOpen(false)} 
           onMinimize={() => setIsOpen(false)}
+          onMaximize={() => setIsMaximized(!isMaximized)}
+          isMaximized={isMaximized}
         />
         
-        <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col">
-          {currentStep === 'chat' && (
-            <>
-              <MessageList messages={messages} isTyping={isTyping} />
-              <div className="mt-auto">
-                <QuickReplies replies={quickReplies} onReplyClick={handleQuickReply} />
-                <ChatInput onSendMessage={handleSendMessage} disabled={isTyping} />
+        <div className={`flex-1 overflow-y-auto overflow-x-hidden flex ${isMaximized ? 'flex-row' : 'flex-col'}`}>
+          {/* Dashboard/Sidebar for Maximized View */}
+          {isMaximized && (
+            <div className="w-64 border-r border-white/10 bg-white/5 hidden md:flex flex-col p-4">
+              <div className="mb-6">
+                <button 
+                  onClick={() => handleSendMessage("I want to hire you!")}
+                  className="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 py-3 px-4 text-sm font-bold text-white shadow-lg shadow-cyan-500/20 Transition-all hover:scale-[1.02] hover:shadow-cyan-500/40 active:scale-[0.98]"
+                >
+                  Hire Me
+                </button>
               </div>
-            </>
-          )}
-
-          {currentStep === 'meeting_type' && (
-            <div className="flex-1 flex flex-col pt-4">
-              <h4 className="px-4 text-xs font-bold text-zinc-500 uppercase mb-2">Select Meeting Type</h4>
-              <MeetingTypeSelector onSelect={handleMeetingTypeSelect} />
-              <button 
-                onClick={() => setCurrentStep('chat')}
-                className="mt-auto p-4 text-sm text-zinc-500 hover:text-white transition-colors border-t border-white/10"
-              >
-                Cancel and Chat
-              </button>
+              <h4 className="text-xs font-bold text-zinc-500 uppercase mb-4 px-1">Quick Links</h4>
+              <nav className="flex flex-col gap-2">
+                {INITIAL_QUICK_REPLIES.map((reply, i) => (
+                  <button 
+                    key={i}
+                    onClick={() => handleQuickReply(reply)}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-400 Transition-all hover:bg-white/5 hover:text-white"
+                  >
+                    <span>{reply.label}</span>
+                  </button>
+                ))}
+              </nav>
             </div>
           )}
 
-          {currentStep === 'calendar' && (
-            <div className="flex-1 flex flex-col pt-4 overflow-y-auto">
-              <h4 className="px-4 text-xs font-bold text-zinc-500 uppercase mb-2">Select Date</h4>
-              <CalendarPicker onDateSelect={handleDateSelect} />
-              <button 
-                onClick={() => setCurrentStep('meeting_type')}
-                className="mt-auto p-4 text-sm text-zinc-500 hover:text-white transition-colors border-t border-white/10"
-              >
-                Go Back
-              </button>
-            </div>
-          )}
+          <div className="flex-1 flex flex-col min-w-0">
+            <div className={`flex-1 flex overflow-hidden ${isMaximized ? 'flex-row' : 'flex-col'}`}>
+              {/* Main Chat Area */}
+              <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isMaximized && currentStep !== 'chat' ? 'border-r border-white/10' : ''}`}>
+                <MessageList messages={messages} isTyping={isTyping} />
+                <div className="mt-auto">
+                  {currentStep === 'chat' && (
+                    <QuickReplies replies={quickReplies} onReplyClick={handleQuickReply} />
+                  )}
+                  <ChatInput onSendMessage={handleSendMessage} disabled={isTyping} />
+                </div>
+              </div>
 
-          {currentStep === 'timeslot' && (
-            <div className="flex-1 flex flex-col pt-4 overflow-y-auto">
-              <h4 className="px-4 text-xs font-bold text-zinc-500 uppercase mb-2">Select Time</h4>
-              <TimeSlotGrid onSelect={handleTimeSelect} selectedTime={selectedTime} />
-              <button 
-                onClick={() => setCurrentStep('calendar')}
-                className="mt-auto p-4 text-sm text-zinc-500 hover:text-white transition-colors border-t border-white/10"
-              >
-                Go Back
-              </button>
-            </div>
-          )}
+              {/* Contextual Action Area (Scheduling, etc.) */}
+              {currentStep !== 'chat' && (
+                <div className={`${isMaximized ? 'w-96' : 'flex-1'} flex flex-col bg-black/20 overflow-y-auto`}>
+                  {currentStep === 'meeting_type' && (
+                    <div className="flex-1 flex flex-col pt-4">
+                      <h4 className="px-4 text-xs font-bold text-zinc-500 uppercase mb-2">Select Meeting Type</h4>
+                      <MeetingTypeSelector onSelect={handleMeetingTypeSelect} />
+                    </div>
+                  )}
 
-          {currentStep === 'info' && (
-            <div className="flex-1 flex flex-col pt-4 overflow-y-auto">
-              <h4 className="px-4 text-xs font-bold text-zinc-500 uppercase mb-2">Your Information</h4>
-              <VisitorInfoForm onSubmit={handleInfoSubmit} />
-              <button 
-                onClick={() => setCurrentStep('timeslot')}
-                className="mt-auto p-4 text-sm text-zinc-500 hover:text-white transition-colors border-t border-white/10"
-              >
-                Go Back
-              </button>
-            </div>
-          )}
+                  {currentStep === 'calendar' && (
+                    <div className="flex-1 flex flex-col pt-4">
+                      <h4 className="px-4 text-xs font-bold text-zinc-500 uppercase mb-2">Select Date</h4>
+                      <CalendarPicker onDateSelect={handleDateSelect} />
+                    </div>
+                  )}
 
-          {currentStep === 'confirmation' && (
-            <div className="flex-1 flex flex-col items-center justify-center p-4">
-              <ConfirmationCard 
-                details={bookingDetails} 
-                onClose={() => {
-                  setCurrentStep('chat');
-                  addMessage("Your meeting has been confirmed! Anything else I can help with?", 'ai');
-                }} 
-              />
+                  {currentStep === 'timeslot' && (
+                    <div className="flex-1 flex flex-col pt-4">
+                      <h4 className="px-4 text-xs font-bold text-zinc-500 uppercase mb-2">Select Time</h4>
+                      <TimeSlotGrid onSelect={handleTimeSelect} selectedTime={selectedTime} />
+                    </div>
+                  )}
+
+                  {currentStep === 'info' && (
+                    <div className="flex-1 flex flex-col pt-4">
+                      <h4 className="px-4 text-xs font-bold text-zinc-500 uppercase mb-2">Your Information</h4>
+                      <VisitorInfoForm onSubmit={handleInfoSubmit} />
+                    </div>
+                  )}
+
+                  {currentStep === 'confirmation' && (
+                    <div className="flex-1 flex flex-col items-center justify-center p-4">
+                      <ConfirmationCard 
+                        details={bookingDetails} 
+                        onClose={() => {
+                          setCurrentStep('chat');
+                          addMessage("Your meeting has been confirmed! Anything else I can help with?", 'ai');
+                        }} 
+                      />
+                    </div>
+                  )}
+
+                  <button 
+                    onClick={() => {
+                      if (currentStep === 'meeting_type') setCurrentStep('chat');
+                      else if (currentStep === 'calendar') setCurrentStep('meeting_type');
+                      else if (currentStep === 'timeslot') setCurrentStep('calendar');
+                      else if (currentStep === 'info') setCurrentStep('timeslot');
+                    }}
+                    className="mt-auto p-4 text-sm text-zinc-500 hover:text-white transition-colors border-t border-white/10"
+                  >
+                    {currentStep === 'meeting_type' ? 'Cancel' : 'Go Back'}
+                  </button>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </ChatWindow>
     </>

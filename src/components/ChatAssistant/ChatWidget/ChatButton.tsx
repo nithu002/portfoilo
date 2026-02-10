@@ -11,7 +11,7 @@ interface ChatButtonProps {
 const ChatButton: React.FC<ChatButtonProps> = ({ isOpen, onClick, unreadCount = 0 }) => {
   return (
     <motion.div
-      className="fixed bottom-5 right-5 z-50"
+      className="fixed bottom-5 right-5 z-[110]"
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut" }}

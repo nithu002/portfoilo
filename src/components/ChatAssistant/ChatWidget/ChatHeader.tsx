@@ -1,16 +1,17 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Minus, Square, X } from 'lucide-react';
+import { Minus, Maximize2, Minimize2, X } from 'lucide-react';
 
 interface ChatHeaderProps {
   onClose: () => void;
   onMinimize?: () => void;
   onMaximize?: () => void;
+  isMaximized?: boolean;
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ onClose, onMinimize, onMaximize }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({ onClose, onMinimize, onMaximize, isMaximized }) => {
   return (
-    <div className="relative z-10 flex items-center justify-between border-b border-white/10 bg-white/5 p-4 backdrop-blur-md">
+    <div className={`relative z-10 flex items-center justify-between border-b border-white/10 bg-white/5 p-4 backdrop-blur-md Transition-all duration-300 ${isMaximized ? 'rounded-t-[32px]' : ''}`}>
       <div className="flex items-center gap-3">
         <div className="relative h-10 w-10">
           <div className="h-full w-full rounded-full bg-gradient-to-br from-blue-500 to-purple-500 p-0.5">
@@ -37,7 +38,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ onClose, onMinimize, onMaximize
           <Minus size={18} />
         </button>
         <button onClick={onMaximize} className="rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white hidden sm:block">
-          <Square size={14} />
+          {isMaximized ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
         </button>
         <button onClick={onClose} className="rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-red-500/20 hover:text-red-500">
           <X size={18} />
